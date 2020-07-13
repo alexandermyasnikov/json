@@ -1,7 +1,7 @@
 /*
     __ _____ _____ _____
  __|  |   __|     |   | |  JSON for Modern C++ (test suite)
-|  |  |__   |  |  | | | |  version 3.7.3
+|  |  |__   |  |  | | | |  version 3.8.0
 |_____|_____|_____|_|___|  https://github.com/nlohmann/json
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
@@ -42,6 +42,7 @@ using nlohmann::json;
 #include <sstream>
 #include <list>
 #include <cstdio>
+#include <test_data.hpp>
 
 #if (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_HAS_CXX17) && _HAS_CXX17 == 1) // fix for issue #464
     #define JSON_HAS_CPP_17
@@ -253,12 +254,12 @@ TEST_CASE("regression tests")
             json j1 = INFINITY;
             CHECK(j1.is_number_float());
             json::number_float_t f1 = j1;
-            CHECK(not std::isfinite(f1));
+            CHECK(!std::isfinite(f1));
 
             json j2 = json::number_float_t(INFINITY);
             CHECK(j2.is_number_float());
             json::number_float_t f2 = j2;
-            CHECK(not std::isfinite(f2));
+            CHECK(!std::isfinite(f2));
         }
     }
 
@@ -463,6 +464,11 @@ TEST_CASE("regression tests")
         s2 = o["name"];
 
         CHECK(s2 == "value");
+
+        // improve coverage
+        o["int"] = 1;
+        CHECK_THROWS_AS(s2 = o["int"], json::type_error);
+        CHECK_THROWS_WITH(s2 = o["int"], "[json.exception.type_error.302] type must be string, but is number");
     }
 
     SECTION("issue #146 - character following a surrogate pair is skipped")
@@ -702,8 +708,8 @@ TEST_CASE("regression tests")
     {
         for (auto filename :
                 {
-                    "test/data/regression/broken_file.json",
-                    "test/data/regression/working_file.json"
+                    TEST_DATA_DIRECTORY "/regression/broken_file.json",
+                    TEST_DATA_DIRECTORY "/regression/working_file.json"
                 })
         {
             CAPTURE(filename)
@@ -717,10 +723,10 @@ TEST_CASE("regression tests")
     {
         for (auto filename :
                 {
-                    "test/data/regression/floats.json",
-                    "test/data/regression/signed_ints.json",
-                    "test/data/regression/unsigned_ints.json",
-                    "test/data/regression/small_signed_ints.json"
+                    TEST_DATA_DIRECTORY "/regression/floats.json",
+                    TEST_DATA_DIRECTORY "/regression/signed_ints.json",
+                    TEST_DATA_DIRECTORY "/regression/unsigned_ints.json",
+                    TEST_DATA_DIRECTORY "/regression/small_signed_ints.json"
                 })
         {
             CAPTURE(filename)
@@ -1344,10 +1350,10 @@ TEST_CASE("regression tests")
         CHECK(j["a"] >  3);
 
 
-        CHECK(not(j["a"] <= 4));
-        CHECK(not(j["a"] <  4));
-        CHECK(not(j["a"] >= 6));
-        CHECK(not(j["a"] >  6));
+        CHECK(!(j["a"] <= 4));
+        CHECK(!(j["a"] <  4));
+        CHECK(!(j["a"] >= 6));
+        CHECK(!(j["a"] >  6));
 
         // scalar op json
         CHECK(5 == j["a"]);
@@ -1358,10 +1364,10 @@ TEST_CASE("regression tests")
         CHECK(3 <= j["a"]);
         CHECK(3 <  j["a"]);
 
-        CHECK(not(4 >= j["a"]));
-        CHECK(not(4 >  j["a"]));
-        CHECK(not(6 <= j["a"]));
-        CHECK(not(6 <  j["a"]));
+        CHECK(!(4 >= j["a"]));
+        CHECK(!(4 >  j["a"]));
+        CHECK(!(6 <= j["a"]));
+        CHECK(!(6 <  j["a"]));
     }
 
     SECTION("issue #575 - heap-buffer-overflow (OSS-Fuzz 1400)")
@@ -1470,7 +1476,7 @@ TEST_CASE("regression tests")
                 | std::ios_base::badbit
             ); // handle different exceptions as 'file not found', 'permission denied'
 
-            is.open("test/data/regression/working_file.json");
+            is.open(TEST_DATA_DIRECTORY "/regression/working_file.json");
             json _;
             CHECK_NOTHROW(_ = nlohmann::json::parse(is));
         }
@@ -1483,7 +1489,7 @@ TEST_CASE("regression tests")
                 | std::ios_base::badbit
             ); // handle different exceptions as 'file not found', 'permission denied'
 
-            is.open("test/data/json_nlohmann_tests/all_unicode.json.cbor",
+            is.open(TEST_DATA_DIRECTORY "/json_nlohmann_tests/all_unicode.json.cbor",
                     std::ios_base::in | std::ios_base::binary);
             json _;
             CHECK_NOTHROW(_ = nlohmann::json::from_cbor(is));
@@ -1602,7 +1608,7 @@ TEST_CASE("regression tests")
         json::parser_callback_t cb = [](int /*depth*/, json::parse_event_t event, json & parsed)
         {
             // skip object elements with key "Thumbnail"
-            if (event == json::parse_event_t::key and parsed == json("Thumbnail"))
+            if (event == json::parse_event_t::key && parsed == json("Thumbnail"))
             {
                 return false;
             }
@@ -1674,7 +1680,7 @@ TEST_CASE("regression tests")
         json::parser_callback_t cb = [&](int, json::parse_event_t event, json & parsed)
         {
             // skip uninteresting events
-            if (event == json::parse_event_t::value and !parsed.is_primitive())
+            if (event == json::parse_event_t::value && !parsed.is_primitive())
             {
                 return false;
             }
@@ -1754,7 +1760,7 @@ TEST_CASE("regression tests")
     SECTION("issue #1292 - Serializing std::variant causes stack overflow")
     {
         static_assert(
-            not std::is_constructible<json, std::variant<int, float>>::value, "");
+            !std::is_constructible<json, std::variant<int, float>>::value, "");
     }
 #endif
 
@@ -1884,6 +1890,28 @@ TEST_CASE("regression tests")
         json j = val;
     }
 
+    SECTION("issue #1715 - json::from_cbor does not respect allow_exceptions = false when input is string literal")
+    {
+        SECTION("string literal")
+        {
+            json cbor = json::from_cbor("B", true, false);
+            CHECK(cbor.is_discarded());
+        }
+
+        SECTION("string array")
+        {
+            const char input[] = { 'B', 0x00 };
+            json cbor = json::from_cbor(input, true, false);
+            CHECK(cbor.is_discarded());
+        }
+
+        SECTION("std::string")
+        {
+            json cbor = json::from_cbor(std::string("B"), true, false);
+            CHECK(cbor.is_discarded());
+        }
+    }
+
     SECTION("issue #1805 - A pair<T1, T2> is json constructible only if T1 and T2 are json constructible")
     {
         static_assert(!std::is_constructible<json, std::pair<std::string, NotSerializableData>>::value, "");
@@ -1904,9 +1932,31 @@ TEST_CASE("regression tests")
         const auto result = json::diff(source, target);
         CHECK(result.dump() == R"([{"op":"add","path":"/foo/-","value":"3"}])");
     }
+
+    SECTION("issue #2067 - cannot serialize binary data to text JSON")
+    {
+        const unsigned char data[] = {0x81, 0xA4, 0x64, 0x61, 0x74, 0x61, 0xC4, 0x0F, 0x33, 0x30, 0x30, 0x32, 0x33, 0x34, 0x30, 0x31, 0x30, 0x37, 0x30, 0x35, 0x30, 0x31, 0x30};
+        json j = json::from_msgpack(data, sizeof(data) / sizeof(data[0]));
+        CHECK_NOTHROW(
+            j.dump(4,                              // Indent
+                   ' ',                            // Indent char
+                   false,                          // Ensure ascii
+                   json::error_handler_t::strict  // Error
+                  )
+        );
+    }
+
+    SECTION("PR #2181 - regression bug with lvalue")
+    {
+        // see https://github.com/nlohmann/json/pull/2181#issuecomment-653326060
+        json j{{"x", "test"}};
+        std::string defval = "default value";
+        auto val = j.value("x", defval);
+        auto val2 = j.value("y", defval);
+    }
 }
 
-#if not defined(JSON_NOEXCEPTION)
+#if !defined(JSON_NOEXCEPTION)
 TEST_CASE("regression tests, exceptions dependent")
 {
     SECTION("issue #1340 - eof not set on exhausted input stream")
@@ -1924,9 +1974,14 @@ TEST_CASE("regression tests, exceptions dependent")
 /////////////////////////////////////////////////////////////////////
 // for #1642
 /////////////////////////////////////////////////////////////////////
+
+// the code below fails with Clang on Windows, so we need to exclude it there
+#if defined(__clang__) && (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+#else
 template <typename T> class array {};
 template <typename T> class object {};
 template <typename T> class string {};
 template <typename T> class number_integer {};
 template <typename T> class number_unsigned {};
 template <typename T> class number_float {};
+#endif

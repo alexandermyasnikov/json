@@ -1,7 +1,7 @@
 /*
     __ _____ _____ _____
  __|  |   __|     |   | |  JSON for Modern C++ (test suite)
-|  |  |__   |  |  | | | |  version 3.7.3
+|  |  |__   |  |  | | | |  version 3.8.0
 |_____|_____|_____|_|___|  https://github.com/nlohmann/json
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
@@ -34,6 +34,7 @@ using nlohmann::json;
 
 #include <fstream>
 #include <set>
+#include <test_data.hpp>
 
 namespace
 {
@@ -920,7 +921,7 @@ TEST_CASE("UBJSON")
 
                     // create JSON value with byte array containing of N * 'x'
                     const auto s = std::vector<std::uint8_t>(N, 'x');
-                    json j = json::binary_array(s);
+                    json j = json::binary(s);
 
                     // create expected byte vector
                     std::vector<std::uint8_t> expected;
@@ -971,7 +972,7 @@ TEST_CASE("UBJSON")
 
                     // create JSON value with byte array containing of N * 'x'
                     const auto s = std::vector<std::uint8_t>(N, 'x');
-                    json j = json::binary_array(s);
+                    json j = json::binary(s);
 
                     // create expected byte vector
                     std::vector<uint8_t> expected;
@@ -1011,7 +1012,7 @@ TEST_CASE("UBJSON")
 
                     // create JSON value with byte array containing of N * 'x'
                     const auto s = std::vector<std::uint8_t>(N, 'x');
-                    json j = json::binary_array(s);
+                    json j = json::binary(s);
 
                     // create expected byte vector
                     std::vector<std::uint8_t> expected(N + 7, 'x');
@@ -1048,7 +1049,7 @@ TEST_CASE("UBJSON")
 
                     // create JSON value with byte array containing of N * 'x'
                     const auto s = std::vector<std::uint8_t>(N, 'x');
-                    json j = json::binary_array(s);
+                    json j = json::binary(s);
 
                     // create expected byte vector
                     std::vector<std::uint8_t> expected(N + 9, 'x');
@@ -1080,7 +1081,7 @@ TEST_CASE("UBJSON")
             {
                 const std::size_t N = 10;
                 const auto s = std::vector<std::uint8_t>(N, 'x');
-                json j = json::binary_array(s);
+                json j = json::binary(s);
 
                 SECTION("No Count No Type")
                 {
@@ -1585,42 +1586,42 @@ TEST_CASE("UBJSON")
         {
             std::vector<uint8_t> v = {'[', 'T', 'F', ']'};
             SaxCountdown scp(0);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
 
         SECTION("start_object()")
         {
             std::vector<uint8_t> v = {'{', 'i', 3, 'f', 'o', 'o', 'F', '}'};
             SaxCountdown scp(0);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
 
         SECTION("key() in object")
         {
             std::vector<uint8_t> v = {'{', 'i', 3, 'f', 'o', 'o', 'F', '}'};
             SaxCountdown scp(1);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
 
         SECTION("start_array(len)")
         {
             std::vector<uint8_t> v = {'[', '#', 'i', '2', 'T', 'F'};
             SaxCountdown scp(0);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
 
         SECTION("start_object(len)")
         {
             std::vector<uint8_t> v = {'{', '#', 'i', '1', 3, 'f', 'o', 'o', 'F'};
             SaxCountdown scp(0);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
 
         SECTION("key() in object with length")
         {
             std::vector<uint8_t> v = {'{', 'i', 3, 'f', 'o', 'o', 'F', '}'};
             SaxCountdown scp(1);
-            CHECK(not json::sax_parse(v, &scp, json::input_format_t::ubjson));
+            CHECK(!json::sax_parse(v, &scp, json::input_format_t::ubjson));
         }
     }
 
@@ -2362,7 +2363,7 @@ TEST_CASE("Universal Binary JSON Specification Examples 1")
     }
 }
 
-#if not defined(JSON_NOEXCEPTION)
+#if !defined(JSON_NOEXCEPTION)
 TEST_CASE("all UBJSON first bytes")
 {
     // these bytes will fail immediately with exception parse_error.112
@@ -2404,48 +2405,48 @@ TEST_CASE("UBJSON roundtrips" * doctest::skip())
     {
         for (std::string filename :
                 {
-                    "test/data/json_nlohmann_tests/all_unicode.json",
-                    "test/data/json.org/1.json",
-                    "test/data/json.org/2.json",
-                    "test/data/json.org/3.json",
-                    "test/data/json.org/4.json",
-                    "test/data/json.org/5.json",
-                    "test/data/json_roundtrip/roundtrip01.json",
-                    "test/data/json_roundtrip/roundtrip02.json",
-                    "test/data/json_roundtrip/roundtrip03.json",
-                    "test/data/json_roundtrip/roundtrip04.json",
-                    "test/data/json_roundtrip/roundtrip05.json",
-                    "test/data/json_roundtrip/roundtrip06.json",
-                    "test/data/json_roundtrip/roundtrip07.json",
-                    "test/data/json_roundtrip/roundtrip08.json",
-                    "test/data/json_roundtrip/roundtrip09.json",
-                    "test/data/json_roundtrip/roundtrip10.json",
-                    "test/data/json_roundtrip/roundtrip11.json",
-                    "test/data/json_roundtrip/roundtrip12.json",
-                    "test/data/json_roundtrip/roundtrip13.json",
-                    "test/data/json_roundtrip/roundtrip14.json",
-                    "test/data/json_roundtrip/roundtrip15.json",
-                    "test/data/json_roundtrip/roundtrip16.json",
-                    "test/data/json_roundtrip/roundtrip17.json",
-                    "test/data/json_roundtrip/roundtrip18.json",
-                    "test/data/json_roundtrip/roundtrip19.json",
-                    "test/data/json_roundtrip/roundtrip20.json",
-                    "test/data/json_roundtrip/roundtrip21.json",
-                    "test/data/json_roundtrip/roundtrip22.json",
-                    "test/data/json_roundtrip/roundtrip23.json",
-                    "test/data/json_roundtrip/roundtrip24.json",
-                    "test/data/json_roundtrip/roundtrip25.json",
-                    "test/data/json_roundtrip/roundtrip26.json",
-                    "test/data/json_roundtrip/roundtrip27.json",
-                    "test/data/json_roundtrip/roundtrip28.json",
-                    "test/data/json_roundtrip/roundtrip29.json",
-                    "test/data/json_roundtrip/roundtrip30.json",
-                    "test/data/json_roundtrip/roundtrip31.json",
-                    "test/data/json_roundtrip/roundtrip32.json",
-                    "test/data/json_testsuite/sample.json",
-                    "test/data/json_tests/pass1.json",
-                    "test/data/json_tests/pass2.json",
-                    "test/data/json_tests/pass3.json"
+                    TEST_DATA_DIRECTORY "/json_nlohmann_tests/all_unicode.json",
+                    TEST_DATA_DIRECTORY "/json.org/1.json",
+                    TEST_DATA_DIRECTORY "/json.org/2.json",
+                    TEST_DATA_DIRECTORY "/json.org/3.json",
+                    TEST_DATA_DIRECTORY "/json.org/4.json",
+                    TEST_DATA_DIRECTORY "/json.org/5.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip01.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip02.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip03.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip04.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip05.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip06.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip07.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip08.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip09.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip10.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip11.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip12.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip13.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip14.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip15.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip16.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip17.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip18.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip19.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip20.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip21.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip22.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip23.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip24.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip25.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip26.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip27.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip28.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip29.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip30.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip31.json",
+                    TEST_DATA_DIRECTORY "/json_roundtrip/roundtrip32.json",
+                    TEST_DATA_DIRECTORY "/json_testsuite/sample.json",
+                    TEST_DATA_DIRECTORY "/json_tests/pass1.json",
+                    TEST_DATA_DIRECTORY "/json_tests/pass2.json",
+                    TEST_DATA_DIRECTORY "/json_tests/pass3.json"
                 })
         {
             CAPTURE(filename)
